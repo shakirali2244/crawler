@@ -16,6 +16,7 @@ public class CrawlEng {
 	/** all the indexed links */
 	private static ArrayList<String> links;
 	/** all the indexed image links */
+	private int head = 0;
 	
 	
 	
@@ -117,13 +118,18 @@ public class CrawlEng {
 					link_uri = new URI(link);
 					if ((link_uri.toString() != null && link_uri.toString() != "")) {
 						boolean added = false;
-						for (String addedlink: links){
-							if (addedlink.equals(link_uri.toString())) added = true;
+						synchronized(links){
+							for (String addedlink: links){
+								if (addedlink.equals(link_uri.toString())) added = true;
+							}
+							if (!added){
+								System.out.println(link);
+								links.add(link);
+								Domain d = new Domain(link_uri.getHost(),link_uri.getPath());
+								dbHelper.addPage(d);
+							}	
 						}
-						if (!added){
-							System.out.println("total of "+links.size()+" so far");
-							links.add(link);
-						}	
+						
 					}
 				} catch (URISyntaxException e) {
 					
@@ -133,21 +139,39 @@ public class CrawlEng {
 		}
 	}
 	public void thread(){
-		for (Object link: links){
-			crawlThread p = new crawlThread(link);
+		while (links.size() > 0){
+			crawlThread p = new crawlThread(head);
 		     p.start();
+		     head++;
+		     while (head >= links.size()){ 
+		    	 try {
+					Thread.sleep(1);
+				  } catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				  }
+		    }
+		     try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 		}
 	}
 	public class crawlThread extends Thread {
-		Object url;
-        crawlThread(Object url) {
-            this.url = url;
+		int lochead;
+        crawlThread(int head) {
+            this.lochead = head;
         }
 
         public void run() {
-            crawl((String) url);
-            
-            links.remove(url);
+            synchronized(links){
+            	crawl(links.get(lochead));
+            	
+            	links.remove(links.get(lochead));
+            	head--;
+            }
         }
     }
 	
@@ -157,6 +181,7 @@ public class CrawlEng {
 	 * @param args
 	 */
 	public static void main(String[] args){
+		dbHelper.DriverRegistration();
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print("Enter starting url ");
         String url = null;

@@ -52,5 +52,33 @@ public class dbHelper {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void addPage(Domain d){
+		Connection c = create();
+		Statement stmt = null;
+		try {
+			stmt = c.createStatement();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		String sql = "INSERT INTO domain (hostname, page) values ('"+d.getName()+"','"+d.getPage()+"');";
+		System.out.println(sql);
+		try {
+			stmt.executeQuery(sql);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			stmt.close();
+			c.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+				
+	}
 
 }
