@@ -14,14 +14,14 @@ import java.util.Scanner;
 
 public class CrawlEng {
 	/** all the indexed links */
-	private static ArrayList<String> links;
+	private static ArrayList<Domain> links;
 	/** all the indexed image links */
 	private int head = 0;
 	
 	
 	
 	public CrawlEng() {
-		links = new ArrayList<String>();
+		links = new ArrayList<Domain>();
 	}
 	
 	/**
@@ -98,34 +98,34 @@ public class CrawlEng {
 	 * looks for new links on a page recursively 
 	 * @param url
 	 */
-	public void crawl(String url){
+	public void crawl(Domain url){
 		URI current_uri = null;
 		try {
-			current_uri = new URI(url);
+			current_uri = new URI(url.getUrl());
 		} catch (URISyntaxException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("Broken Url!!");
 		}
-		Scanner in = httpCall(url);
+		Scanner in = httpCall(url.getUrl());
 		if (in == null) return;
 		//System.out.println(links.size());
 		while(in.hasNextLine()){
 			String htmlDump = in.nextLine();
 			if(htmlDump.contains("href") && htmlDump.contains("<a") ){
-				String link = extractLink(htmlDump,url);
+				String link = extractLink(htmlDump,url.getUrl());
 				URI link_uri = null;
 				try {
 					link_uri = new URI(link);
 					if ((link_uri.toString() != null && link_uri.toString() != "")) {
 						boolean added = false;
 						synchronized(links){
-							for (String addedlink: links){
-								if (addedlink.equals(link_uri.toString())) added = true;
+							for (Domain addedlink: links){
+								if (addedlink.getUrl().equals(link_uri.toString())) added = true;
 							}
 							if (!added){
-								System.out.println(link);
-								links.add(link);
-								Domain d = new Domain(link_uri.getHost(),link_uri.getPath());
+								System.out.println("parent = " + url.getUrl() + "id = "+ url.getId());
+								Domain d = new Domain(link,link_uri.getHost(),link_uri.getPath(),url);
+								links.add(d);
 								dbHelper.addPage(d);
 							}	
 						}
@@ -191,9 +191,20 @@ public class CrawlEng {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		URI start_uri = null;
+		try {
+			start_uri = new URI(url);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//String url = "http://oracle.com";
 		CrawlEng a = new CrawlEng();
-		a.crawl(url);
+		Domain dummy = new Domain("","","",null);
+		dummy.setId(1);
+		Domain start = new Domain(url,start_uri.getHost(),start_uri.getPath(),dummy);
+		dbHelper.addPage(start);
+		a.crawl(start);
 		a.thread();
 		
 		

@@ -2,6 +2,7 @@ package to.us.badtgerworks;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -54,6 +55,7 @@ public class dbHelper {
 	}
 	
 	public static void addPage(Domain d){
+		int parent_id = d.getParent().getId();
 		Connection c = create();
 		Statement stmt = null;
 		try {
@@ -62,14 +64,25 @@ public class dbHelper {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		String sql = "INSERT INTO domain (hostname, page) values ('"+d.getName()+"','"+d.getPage()+"');";
+		String sql = "INSERT INTO domain (hostname, page, bk_link) values ('"+d.getHostname()+"','"+d.getPage()+"','"+parent_id+"') RETURNING id;";
 		System.out.println(sql);
+		ResultSet rs = null;
 		try {
-			stmt.executeQuery(sql);
+			rs = stmt.executeQuery(sql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		int id = -1;
+		try {
+			if(rs.next()){
+				id = rs.getInt(1);
+			}			
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} //TODO remove hardcode
+		d.setId(id);
 		try {
 			stmt.close();
 			c.close();
