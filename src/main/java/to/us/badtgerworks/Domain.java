@@ -7,6 +7,7 @@ public class Domain {
 	private String url;
 	private int id = -1;
 	private Domain parent;
+	private int toCrawl = -1;
 	//private Meta meta;
 	
 	public Domain(String url,String n, String p, Domain parent ){
@@ -51,6 +52,14 @@ public class Domain {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public int isToCrawl() {
+		return toCrawl;
+	}
+
+	public void setToCrawl(int toCrawl) {
+		this.toCrawl = toCrawl;
 	}
 	
 

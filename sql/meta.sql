@@ -4,13 +4,10 @@
 
 CREATE TABLE meta
 (
-  id serial NOT NULL,
+  id serial NOT NULL PRIMARY KEY,
   keywords character varying,
   "desc" character varying,
-  did integer,
-  CONSTRAINT meta_did_fkey FOREIGN KEY (did)
-      REFERENCES domain (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION
+  did integer REFERENCES domain(id)
 )
 WITH (
   OIDS=FALSE

@@ -4,10 +4,9 @@
 
 CREATE TABLE domain
 (
-  id serial NOT NULL,
+  id serial NOT NULL PRIMARY KEY,
   hostname character varying,
-  page character varying,
- bk_link REFERENCES domain(id),  CONSTRAINT domain_pkey PRIMARY KEY (id)
+  page character varying
 )
 WITH (
   OIDS=FALSE

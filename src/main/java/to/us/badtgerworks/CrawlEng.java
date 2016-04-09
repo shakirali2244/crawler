@@ -118,16 +118,17 @@ public class CrawlEng {
 					link_uri = new URI(link);
 					if ((link_uri.toString() != null && link_uri.toString() != "")) {
 						boolean added = false;
-						synchronized(links){
-							for (Domain addedlink: links){
-								if (addedlink.getUrl().equals(link_uri.toString())) added = true;
-							}
-							if (!added){
-								System.out.println("parent = " + url.getUrl() + "id = "+ url.getId());
-								Domain d = new Domain(link,link_uri.getHost(),link_uri.getPath(),url);
-								links.add(d);
-								dbHelper.addPage(d);
-							}	
+
+			            synchronized(links){
+						for (Domain addedlink: links){
+							if (addedlink.getUrl().equals(link_uri.toString())) added = true;
+						}
+			            }
+						if (!added){
+							//System.out.println("parent = " + url.getUrl() + "id = "+ url.getId());
+							Domain d = new Domain(link,link_uri.getHost(),link_uri.getPath(),url);
+							links.add(d);
+							dbHelper.addPage(d);	
 						}
 						
 					}
@@ -140,37 +141,30 @@ public class CrawlEng {
 	}
 	public void thread(){
 		while (links.size() > 0){
-			crawlThread p = new crawlThread(head);
-		     p.start();
-		     head++;
-		     while (head >= links.size()){ 
-		    	 try {
-					Thread.sleep(1);
-				  } catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				  }
-		    }
-		     try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			Domain current = links.get(0);
+			while(current.isToCrawl() == -1){System.out.println("waiting... " + head + " undetermined");}
+			if(current.isToCrawl() == 1){
+				crawlThread p = new crawlThread(current);
+			    p.start();
+			}else{
+				links.remove(current);
+				System.out.println("notIStoCrawl and "+ links.size()+" domain qued");
+			}
+		   
+		     /**/
 		}
 	}
 	public class crawlThread extends Thread {
-		int lochead;
-        crawlThread(int head) {
-            this.lochead = head;
+		Domain cur;
+        crawlThread(Domain cur) {
+            this.cur = cur;
         }
 
         public void run() {
             synchronized(links){
-            	crawl(links.get(lochead));
-            	
-            	links.remove(links.get(lochead));
-            	head--;
+            	crawl(cur);
+            	links.remove(cur);
+            	System.out.println("Crawled and "+ links.size()+" domain qued");
             }
         }
     }
