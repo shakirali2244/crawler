@@ -1,4 +1,4 @@
-package to.us.badtgerworks;
+package to.us.badgerworks;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,20 +17,10 @@ public class CrawlEng {
 	private static ArrayList<Domain> links;
 	/** all the indexed image links */
 	private int head = 0;
-	/** db helper for crawl **/
-	private dbHelper dh;
-	/** limit for the crawl to stop **/
-	private int limit = 100;
-	/** Starting Domain **/
-	private Domain start;
 	
-	public CrawlEng(URI url, String username){
-		dh = new dbHelper(username);
-		dh.DriverRegistration();
-		Domain dummy = new Domain("","","",null);
-		dummy.setId(1);
-		start = new Domain(url.toString(),url.getHost(),url.getPath(),dummy);
-		dh.addPage(start);
+	
+	
+	public CrawlEng() {
 		links = new ArrayList<Domain>();
 	}
 	
@@ -119,7 +109,7 @@ public class CrawlEng {
 		Scanner in = httpCall(url.getUrl());
 		if (in == null) return;
 		//System.out.println(links.size());
-		while(in.hasNextLine() && limit >= 0){
+		while(in.hasNextLine()){
 			String htmlDump = in.nextLine();
 			if(htmlDump.contains("href") && htmlDump.contains("<a") ){
 				String link = extractLink(htmlDump,url.getUrl());
@@ -138,8 +128,7 @@ public class CrawlEng {
 							//System.out.println("parent = " + url.getUrl() + "id = "+ url.getId());
 							Domain d = new Domain(link,link_uri.getHost(),link_uri.getPath(),url);
 							links.add(d);
-							dh.addPage(d);	
-							limit--;
+							dbHelper.addPage(d);	
 						}
 						
 					}
@@ -151,15 +140,15 @@ public class CrawlEng {
 		}
 	}
 	public void thread(){
-		while (links.size() > 0 && limit >= 0){
+		while (links.size() > 0){
 			Domain current = links.get(0);
-			while(current.isToCrawl() == -1){System.out.println("waiting... ");}
+			while(current.isToCrawl() == -1){System.out.println("waiting... " + head + " undetermined");}
 			if(current.isToCrawl() == 1){
 				crawlThread p = new crawlThread(current);
 			    p.start();
 			}else{
 				links.remove(current);
-				System.out.println("ALready Crawled "+ links.size()+" qued");
+				System.out.println("notIStoCrawl and "+ links.size()+" domain qued");
 			}
 		   
 		     /**/
@@ -175,21 +164,46 @@ public class CrawlEng {
             synchronized(links){
             	crawl(cur);
             	links.remove(cur);
-            	System.out.println("Crawling and  "+ links.size()+" qued");
+            	System.out.println("Crawled and "+ links.size()+" domain qued");
             }
         }
     }
-	public void crawlStart() {
-		crawl(start);
-		
-	}
-	
-	
-		
-	}
 	
 
-
+	/**
+	 * main entry point
+	 * @param args
+	 */
+	public static void main(String[] args){
+		dbHelper.DriverRegistration();
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Enter starting url ");
+        String url = null;
+		try {
+			url = br.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		URI start_uri = null;
+		try {
+			start_uri = new URI(url);
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//String url = "http://oracle.com";
+		CrawlEng a = new CrawlEng();
+		Domain dummy = new Domain("","","",null);
+		dummy.setId(1);
+		Domain start = new Domain(url,start_uri.getHost(),start_uri.getPath(),dummy);
+		dbHelper.addPage(start);
+		a.crawl(start);
+		a.thread();
+		
+		
+	}
+}
 /*	
 	 * extracts image url from img tag
 	 * @param input - the html line

@@ -1,4 +1,4 @@
-package to.us.badtgerworks;
+package to.us.badgerworks;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,16 +7,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class dbHelper {
-	 String host = "localhost";
-	 String port = "5432";
-	 String db = "meta";
-	 String user = "";
+	static String host = "localhost";
+	static String port = "5432";
+	static String db = "meta";
+	static String user = "postgres";
 	
-	public dbHelper(String user){
-		this.user = user;
-	}
-	
-	public void DriverRegistration() {
+	public static void DriverRegistration() {
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException e) {
@@ -24,9 +20,9 @@ public class dbHelper {
 			e.printStackTrace();
 			return;
 		}
-		System.out.println("DB connection ...");
+		System.out.println("PostgreSQL JDBC Driver Registered!");
 	}
-	public  Connection create(){
+	public static Connection create(){
 		//String url = "?"+user;
 		//String url = "jdbc:postgresql://localhost/test?user=fred&password=secret&ssl=true";
 		Connection conn = null;
@@ -58,7 +54,7 @@ public class dbHelper {
 		}
 	}
 	
-	public  void addPage(Domain d){
+	public static void addPage(Domain d){
 		int parent_id = d.getParent().getId();
 		int id = -1;
 		Connection c = create();
@@ -85,7 +81,6 @@ public class dbHelper {
 				d.setId(id);
 				d.setToCrawl(0);
 				String sql2 = "INSERT INTO link values ("+ d.getParent().getId() +","+ d.getId()+");";
-				System.out.println(d.getParent().getUrl() + " ---> "+d.getHostname()+d.getPage());
 				//System.out.println(sql2);
 				stmt.executeQuery(sql2);
 				return;
@@ -97,7 +92,7 @@ public class dbHelper {
 		}
 		String sql = "INSERT INTO domain (hostname, page) values ('"+d.getHostname()+"','"+d.getPage()+"') RETURNING id;";
 		d.setToCrawl(1);
-		System.out.println("[NEW] "+d.getHostname()+d.getPage());
+		System.out.println("inserting domian"+d.getHostname()+d.getPage());
 		ResultSet rs = null;
 		try {
 			rs = stmt.executeQuery(sql);
@@ -117,7 +112,6 @@ public class dbHelper {
 		d.setId(id);
 		d.setToCrawl(1);
 		String sql3 = "INSERT INTO link values ("+ d.getParent().getId() +","+ d.getId()+");";
-		System.out.println(d.getParent().getUrl() + " ---> [NEW]"+d.getHostname()+d.getPage());
 		//System.out.println(sql3);
 		try {
 			stmt.executeQuery(sql3);

@@ -1,4 +1,4 @@
-package to.us.badtgerworks;
+package to.us.badgerworks;
 
 public class Domain {
 	
