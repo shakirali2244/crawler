@@ -1,4 +1,4 @@
-package to.us.badtgerworks;
+package to.us.badgerworks;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

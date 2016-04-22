@@ -1,4 +1,4 @@
-package to.us.badtgerworks;
+package to.us.badgerworks;
 
 import java.io.BufferedReader;
 import java.io.IOException;
