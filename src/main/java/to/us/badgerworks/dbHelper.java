@@ -80,7 +80,7 @@ public class dbHelper {
 				id = rs1.getInt(1);
 				d.setId(id);
 				d.setToCrawl(0);
-				String sql2 = "INSERT INTO link values ("+ d.getParent().getId() +","+ d.getId()+");";
+				String sql2 = "INSERT INTO link values ("+ parent_id +","+ d.getId()+");";
 				//System.out.println(sql2);
 				stmt.executeQuery(sql2);
 				return;
@@ -92,7 +92,7 @@ public class dbHelper {
 		}
 		String sql = "INSERT INTO domain (hostname, page) values ('"+d.getHostname()+"','"+d.getPage()+"') RETURNING id;";
 		d.setToCrawl(1);
-		System.out.println("inserting domian"+d.getHostname()+d.getPage());
+		//System.out.println("inserting domian"+d.getHostname()+d.getPage());
 		ResultSet rs = null;
 		try {
 			rs = stmt.executeQuery(sql);

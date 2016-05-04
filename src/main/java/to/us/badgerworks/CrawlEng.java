@@ -123,13 +123,14 @@ public class CrawlEng {
 						for (Domain addedlink: links){
 							if (addedlink.getUrl().equals(link_uri.toString())) added = true;
 						}
-			            }
+			            
 						if (!added){
 							//System.out.println("parent = " + url.getUrl() + "id = "+ url.getId());
 							Domain d = new Domain(link,link_uri.getHost(),link_uri.getPath(),url);
 							links.add(d);
 							dbHelper.addPage(d);	
 						}
+			            }
 						
 					}
 				} catch (URISyntaxException e) {
@@ -140,18 +141,32 @@ public class CrawlEng {
 		}
 	}
 	public void thread(){
-		while (links.size() > 0){
-			Domain current = links.get(0);
-			while(current.isToCrawl() == -1){System.out.println("waiting... " + head + " undetermined");}
-			if(current.isToCrawl() == 1){
-				crawlThread p = new crawlThread(current);
-			    p.start();
-			}else{
-				links.remove(current);
-				System.out.println("notIStoCrawl and "+ links.size()+" domain qued");
+		while (true){
+			if(links.size()> 0){
+				Domain current = links.get(0);
+				while(current.isToCrawl() == -1){System.out.println("waiting... " + current.getUrl() + " undetermined"); try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				}
+				synchronized(links){
+					if(current.isToCrawl() == 1){
+						links.remove(current);
+						crawlThread p = new crawlThread(current);
+						System.out.println( links.size()+" stack que and "+ java.lang.Thread.activeCount() + " threads alive");
+					    p.start();
+					}else{
+						links.remove(current);
+						System.out.println("not crawling and "+ links.size()+" stack que and "+ java.lang.Thread.activeCount() + " threads alive"); 
+					}
+				}
+				}
+				
+			else if (links.size() == 0 && java.lang.Thread.activeCount() < 2 ){
+				break;
 			}
-		   
-		     /**/
 		}
 	}
 	public class crawlThread extends Thread {
@@ -161,17 +176,19 @@ public class CrawlEng {
         }
 
         public void run() {
-            synchronized(links){
             	crawl(cur);
-            	links.remove(cur);
-            	System.out.println("Crawled and "+ links.size()+" domain qued");
-            }
         }
     }
 	
 
 	/**
 	 * main entry point
+	 * @param args
+	 */
+	/**
+	 * @param args
+	 */
+	/**
 	 * @param args
 	 */
 	public static void main(String[] args){
@@ -197,8 +214,8 @@ public class CrawlEng {
 		Domain dummy = new Domain("","","",null);
 		dummy.setId(1);
 		Domain start = new Domain(url,start_uri.getHost(),start_uri.getPath(),dummy);
+		links.add(start);
 		dbHelper.addPage(start);
-		a.crawl(start);
 		a.thread();
 		
 		
